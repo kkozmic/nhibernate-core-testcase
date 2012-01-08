@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
-using NHibernate.Dialect;
+using System.Linq;
+using NHibernate.Linq;
 using NUnit.Framework;
 
 namespace NHibernate.Test.NHSpecificTest.NH1234
@@ -15,10 +13,17 @@ namespace NHibernate.Test.NHSpecificTest.NH1234
             base.OnSetUp();
             using (ISession session = this.OpenSession())
             {
-                DomainClass entity = new DomainClass();
-                entity.Id = 1;
-                entity.ByteData = new byte[] {1, 2, 3};
-                session.Save(entity);
+                var child1 = new Child
+                                 {
+                                     Id = 1,
+                                     DateOfBirth = new DateTime(2010, 1, 1)
+                                 };
+
+                var p1 = new Parent {Id = 1};
+                p1.Children.Add(child1);
+                var p2 = new Parent {Id = 2};
+                session.Save(p1);
+                session.Save(p2);
                 session.Flush();
             }
         }
@@ -34,22 +39,19 @@ namespace NHibernate.Test.NHSpecificTest.NH1234
             }
         }
 
-        protected override bool AppliesTo(NHibernate.Dialect.Dialect dialect)
-        {
-            return dialect as MsSql2005Dialect != null;
-        }
-
         [Test]
         public void BytePropertyShouldBeRetrievedCorrectly()
         {
-            using (ISession session = this.OpenSession())
+            using (ISession session = OpenSession())
             {
-                DomainClass entity = session.Get<DomainClass>(1);
+                var query = from parent in session.Query<Parent>()
+                where parent.Children == null ||
+                      parent.Children.Any(c => c.DateOfBirth < new DateTime(2000, 1, 1))
+                select parent;
+                var result = query.ToList();
 
-                Assert.AreEqual(3, entity.ByteData.Length);
-                Assert.AreEqual(1, entity.ByteData[0]);
-                Assert.AreEqual(2, entity.ByteData[1]);
-                Assert.AreEqual(3, entity.ByteData[2]);
+                Assert.AreEqual(1, result.Count);
+                Assert.AreEqual(2, result[0].Id);
             }
         }
     }
