@@ -6,10 +6,10 @@
     <id name="Id">
       <generator class="assigned" />
     </id>
-    <set name="Children" table="Child" cascade="all-delete-orphan">
+    <bag name="Children" table="Child" cascade="all-delete-orphan">
       <key column="ChildId"></key>
       <one-to-many class="Child"/>
-    </set>
+    </bag>
   </class>
   <class name="Child">
     <id name="Id">
