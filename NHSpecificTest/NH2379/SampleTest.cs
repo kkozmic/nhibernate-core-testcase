@@ -3,7 +3,7 @@ using System.Linq;
 using NHibernate.Linq;
 using NUnit.Framework;
 
-namespace NHibernate.Test.NHSpecificTest.NH1234
+namespace NHibernate.Test.NHSpecificTest.NH2379
 {
     [TestFixture]
     public class SampleTest : BugTestCase
